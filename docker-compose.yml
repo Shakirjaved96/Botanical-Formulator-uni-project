@@ -1,0 +1,30 @@
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  python-ai:
+    build: ./microservice-python
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    depends_on:
+      - mongodb
+
+  java-backend:
+    build: ./backend-java
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/botanical_db
+      - PYTHON_AI_URL=http://python-ai:8000
+    depends_on:
+      - mongodb
+      - python-ai
+
+volumes:
+  mongo-data:

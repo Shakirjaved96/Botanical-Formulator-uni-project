@@ -1,0 +1,17 @@
+spring:
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://localhost:27017/botanical_db}
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+python:
+  ai:
+    url: ${PYTHON_AI_URL:http://localhost:8000}
+
+logging:
+  level:
+    com.botanical: DEBUG
+    org.springframework.data.mongodb: DEBUG
