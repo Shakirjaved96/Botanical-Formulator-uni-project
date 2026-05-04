@@ -1,13 +1,14 @@
 import { useRef, useState, useEffect } from 'react'
-import { Camera, RefreshCw, Upload, Sparkles } from 'lucide-react'
+import { Camera, RefreshCw, Sparkles, UserCircle } from 'lucide-react'
 
 interface Props {
+  userData: any;
   onResult: (data: any) => void;
   setLoading: (loading: boolean) => void;
   loading: boolean;
 }
 
-export default function CameraCapture({ onResult, setLoading, loading }: Props) {
+export default function CameraCapture({ userData, onResult, setLoading, loading }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [stream, setStream] = useState<MediaStream | null>(null)
@@ -57,14 +58,17 @@ export default function CameraCapture({ onResult, setLoading, loading }: Props) 
     
     setLoading(true)
     try {
-      // Convert base64 to Blob
       const res = await fetch(capturedImage)
       const blob = await res.blob()
       
       const formData = new FormData()
       formData.append('image', blob, 'capture.jpg')
+      formData.append('name', userData.name)
+      formData.append('email', userData.email)
+      formData.append('age', userData.age)
+      formData.append('skinType', userData.skinType)
 
-      const response = await fetch('http://localhost:8080/api/v1/diagnose', {
+      const response = await fetch('http://localhost:8080/api/v1/diagnose-and-formulate', {
         method: 'POST',
         body: formData,
       })
@@ -75,9 +79,10 @@ export default function CameraCapture({ onResult, setLoading, loading }: Props) 
       onResult(result)
     } catch (err) {
       console.warn("Backend connection failed, using mock data for demo purposes:", err)
-      // High-quality mock data for demo
+      // Mock fallback
       setTimeout(() => {
         onResult({
+          user: { ...userData, id: "mock-123" },
           detectedCondition: "Acne Breakout",
           confidence: 0.94,
           conditionDetails: {
@@ -101,7 +106,7 @@ export default function CameraCapture({ onResult, setLoading, loading }: Props) 
             ]
           }
         })
-      }, 1500)
+      }, 2000)
     } finally {
       setLoading(false)
     }
@@ -109,7 +114,22 @@ export default function CameraCapture({ onResult, setLoading, loading }: Props) 
 
   return (
     <div className="space-y-6">
-      <div className="relative aspect-[4/3] bg-black rounded-2xl overflow-hidden shadow-inner">
+      <div className="flex items-center justify-between px-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-botanical-sand flex items-center justify-center text-botanical-green">
+            <UserCircle className="w-6 h-6" />
+          </div>
+          <div className="text-left">
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Analyzing for</p>
+            <p className="text-sm font-bold text-botanical-green">{userData.name}</p>
+          </div>
+        </div>
+        <div className="px-3 py-1 bg-botanical-sand/30 rounded-full text-[10px] font-bold text-botanical-clay uppercase tracking-tighter">
+          Step 2: Analysis
+        </div>
+      </div>
+
+      <div className="relative aspect-[4/3] bg-black rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white/50">
         {!capturedImage ? (
           <video 
             ref={videoRef} 
@@ -120,15 +140,19 @@ export default function CameraCapture({ onResult, setLoading, loading }: Props) 
         ) : (
           <img 
             src={capturedImage} 
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover animate-in fade-in duration-500"
             alt="Captured" 
           />
         )}
 
         {loading && (
-          <div className="absolute inset-0 bg-botanical-green/60 backdrop-blur-sm flex flex-col items-center justify-center text-white">
-            <Sparkles className="w-12 h-12 animate-pulse mb-4" />
-            <p className="font-medium tracking-wide">AI Analyzing Skin Texture...</p>
+          <div className="absolute inset-0 bg-botanical-green/70 backdrop-blur-md flex flex-col items-center justify-center text-white z-20">
+            <div className="relative mb-8">
+              <Sparkles className="w-16 h-16 animate-pulse" />
+              <div className="absolute inset-0 animate-ping rounded-full bg-white/20" />
+            </div>
+            <p className="text-xl font-serif tracking-wide mb-2 italic">Scanning skin texture...</p>
+            <p className="text-sm text-botanical-sand/60 animate-bounce">AI is formulating your recipe</p>
           </div>
         )}
       </div>
@@ -139,17 +163,17 @@ export default function CameraCapture({ onResult, setLoading, loading }: Props) 
         {!capturedImage ? (
           <button 
             onClick={capture}
-            className="btn-primary flex items-center gap-2"
+            className="btn-primary flex items-center gap-3 px-10"
           >
             <Camera className="w-5 h-5" />
-            Capture Photo
+            Capture Snapshot
           </button>
         ) : (
           <>
             <button 
               onClick={() => setCapturedImage(null)}
               disabled={loading}
-              className="px-6 py-3 rounded-full border border-gray-200 font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
+              className="px-8 py-4 rounded-full border border-gray-200 font-medium hover:bg-gray-50 transition-all flex items-center gap-2"
             >
               <RefreshCw className="w-5 h-5" />
               Retake
@@ -157,18 +181,14 @@ export default function CameraCapture({ onResult, setLoading, loading }: Props) 
             <button 
               onClick={handleSubmit}
               disabled={loading}
-              className="btn-primary flex items-center gap-2"
+              className="btn-primary flex items-center gap-2 px-10 shadow-lg shadow-botanical-green/20"
             >
-              {loading ? "Analyzing..." : "Confirm & Analyze"}
+              {loading ? "Analyzing..." : "Confirm & Formulate"}
               {!loading && <Sparkles className="w-5 h-5" />}
             </button>
           </>
         )}
       </div>
-      
-      <p className="text-center text-sm text-gray-400">
-        Ensure good lighting for the most accurate diagnosis.
-      </p>
     </div>
   )
 }

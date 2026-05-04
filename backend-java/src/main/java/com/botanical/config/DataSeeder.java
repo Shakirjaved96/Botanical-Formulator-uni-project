@@ -1,6 +1,8 @@
 package com.botanical.config;
 
-import com.botanical.model.Condition;
+import com.botanical.model.BaseCondition;
+import com.botanical.model.HairCondition;
+import com.botanical.model.SkinCondition;
 import com.botanical.model.Formulation;
 import com.botanical.model.Ingredient;
 import com.botanical.repository.ConditionRepository;
@@ -23,10 +25,10 @@ public class DataSeeder {
         return args -> {
             if (conditionRepo.count() == 0) {
                 // Seed Conditions
-                Condition acne = new Condition(null, "Acne Breakout", "Inflammation of the skin resulting in pimples.", "skin");
-                Condition oily = new Condition(null, "Oily Skin", "Excess sebum production.", "skin");
-                Condition dandruff = new Condition(null, "Severe Dandruff", "Excessive shedding of dead skin from the scalp.", "hair");
-                Condition dryScalp = new Condition(null, "Dry Scalp", "Lack of moisture in the scalp skin.", "hair");
+                BaseCondition acne = new SkinCondition(null, "Acne Breakout", "Inflammation of the skin resulting in pimples.", "Oily");
+                BaseCondition oily = new SkinCondition(null, "Oily Skin", "Excess sebum production.", "Normal");
+                BaseCondition dandruff = new HairCondition(null, "Severe Dandruff", "Excessive shedding of dead skin from the scalp.", "Flaky");
+                BaseCondition dryScalp = new HairCondition(null, "Dry Scalp", "Lack of moisture in the scalp skin.", "Dry");
                 
                 conditionRepo.saveAll(Arrays.asList(acne, oily, dandruff, dryScalp));
 
@@ -39,7 +41,7 @@ public class DataSeeder {
 
                 // Seed Formulations
                 // Fetch the acne condition to get its ID
-                Condition savedAcne = conditionRepo.findByName("Acne Breakout").get();
+                BaseCondition savedAcne = conditionRepo.findByName("Acne Breakout").get();
                 
                 Formulation acneRemedy = new Formulation(
                     null,
